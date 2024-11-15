@@ -1,0 +1,12 @@
+[submodule "third-party/pmp"]
+	path = third-party/pmp
+	url = git@github.com:Bunnycide/mesh-cluster-gen.git
+[submodule "assets/models/common-3d-test-models"]
+	path = assets/models/common-3d-test-models
+	url = git@github.com:alecjacobson/common-3d-test-models.git
+[submodule "third-party/pmp-library"]
+	path = third-party/pmp-library
+	url = https://github.com/pmp-library/pmp-library.git
+[submodule "third-party/CGAL"]
+	path = third-party/CGAL
+	url = git@github.com:CGAL/cgal.git

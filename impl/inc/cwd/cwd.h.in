@@ -1,0 +1,6 @@
+#ifndef CWD_
+#define CWD_
+
+#define CWD "${CMAKE_SOURCE_DIR}"
+
+#endif

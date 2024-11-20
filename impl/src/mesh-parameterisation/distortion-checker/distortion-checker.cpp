@@ -1,4 +1,4 @@
-#include "distortion-checker/distortion-checker.h"
+#include "mesh-parameterisation/distortion-checker/distortion-checker.h"
 
 double angle_between(const pmp::Point v0, const pmp::Point v1, const pmp::Point v2)
 {
@@ -23,13 +23,9 @@ double angle_between(const pmp::Point v0, const pmp::Point v1, const pmp::Point 
     return std::acos(cos_theta);
 }
 
-/**
- * @param mesh The loaded mesh to process
- * @param v1 First of the two vertices to calculate distance between
- * @param v2 Second of the two vertices to calculate distance between
- * @return The distance between the two vertices
- */
-double calculate_distance(const pmp::SurfaceMesh& mesh, const pmp::Vertex v1, const pmp::Vertex v2) {
+double calculate_distance(  const pmp::SurfaceMesh& mesh,
+                            const pmp::Vertex v1,
+                            const pmp::Vertex v2) {
     // Get the positions of the two vertices
     pmp::Point p1 = mesh.position(v1);
     pmp::Point p2 = mesh.position(v2);
@@ -44,8 +40,10 @@ double calculate_distance(const pmp::SurfaceMesh& mesh, const pmp::Vertex v1, co
     return distance;
 }
 
-// Function to find boundary vertices within a given radius r
-std::vector<pmp::Vertex> find_boundary_vertices(const pmp::SurfaceMesh& mesh, pmp::Vertex start_vertex, int r)
+
+std::vector<pmp::Vertex> find_boundary_vertices(const pmp::SurfaceMesh& mesh,
+                                                const pmp::Vertex start_vertex,
+                                                const int r)
 {
     std::vector<pmp::Vertex> visited; // Store visited vertices
     std::vector<pmp::Vertex> current_layer = { start_vertex }; // The starting vertex layer
@@ -79,14 +77,13 @@ std::vector<pmp::Vertex> find_boundary_vertices(const pmp::SurfaceMesh& mesh, pm
     }
 
     // After r layers, `current_layer` holds the boundary vertices at distance `r`
-    boundary_vertices.insert(boundary_vertices.end(), current_layer.begin(), current_layer.end());
+    boundary_vertices.insert(boundary_vertices.end(),
+                                current_layer.begin(),
+                                current_layer.end());
 
     return boundary_vertices;
 }
 
-/**
- * @brief Calculate regional distortion for the given vertex.
- */
 double calculate_vertex_distortion(const pmp::SurfaceMesh &mesh, const pmp::Vertex &vertex, const int &region_radius)
 {
     // Find the longest edge from the vertex in region radius
@@ -107,24 +104,58 @@ double calculate_vertex_distortion(const pmp::SurfaceMesh &mesh, const pmp::Vert
     return  M_2_PI - angle_aggregate / M_2_PI;
 }
 
-/**
- *@brief
- * Measures how much the area around a vertex nn in the mesh deviates from being flat (developable),
- * both at a specific scale rr and across multiple scales. Which is valuable in identifying areas with high distortion.
-* */
 void calculate_region_distortion(pmp::SurfaceMesh &mesh, int region_radius)
 {
-    auto vertex_distortion = mesh.add_vertex_property<float>("v:distortion", std::numeric_limits<float>::infinity());
+    auto vertex_distortion =
+        mesh.add_vertex_property<pmp::Scalar>(VERTEX_DISTORTION_ATTRIBUTE,
+                                                std::numeric_limits<float>::infinity());
 
     // Iterate over the vertices
-    auto r_region_magnitude = 1;
+    auto r_region_magnitude = region_radius;
     float regional_distortion = 0;
 
     // Iterate over vertices
     for(auto v : mesh.vertices())
     {
-        regional_distortion = static_cast<float>(calculate_vertex_distortion(mesh, v, r_region_magnitude));
+        regional_distortion = static_cast<float>(calculate_vertex_distortion(   mesh,
+                                                                                v,
+                                                                                r_region_magnitude));
 
         vertex_distortion[v] = regional_distortion;
+    }
+}
+
+void region_distortion_to_texture_coordinates(pmp::SurfaceMesh &mesh)
+{
+    auto vertex_distortion = mesh.get_vertex_property<pmp::Scalar>(VERTEX_DISTORTION_ATTRIBUTE);
+
+    for(auto v : mesh.vertices())
+    {
+        vertex_distortion[v] = -(vertex_distortion[v] * 180.0 / M_PI ) / 360.0 ;
+    }
+
+    // sort distortion values
+    std::vector<pmp::Scalar> values;
+    values.reserve(mesh.n_vertices());
+
+    for(const auto v : mesh.vertices())
+    {
+        values.push_back( vertex_distortion[v]);
+    }
+
+    std::ranges::sort(values);
+    unsigned int n = values.size() - 1;
+
+    unsigned int i = n / 20;
+    const pmp::Scalar kmin = values[i], kmax = values[n - 1];
+
+    auto tex = mesh.vertex_property<pmp::TexCoord>("v:tex");
+
+    for(auto v : mesh.vertices())
+    {
+        tex[v] = pmp::TexCoord(
+            (vertex_distortion[v] - kmin) / (kmax - kmin),
+            0.0
+            );
     }
 }

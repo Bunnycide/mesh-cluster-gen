@@ -15,7 +15,9 @@ add_subdirectory(third-party/pmp-library)
 # executable ==========================
 add_executable( ${PROJECT_NAME} main.cpp
         impl/src/mesh-parameterisation/distortion-checker/distortion-checker.cpp
-        impl/src/mesh-parameterisation/seam-generator/seam-generator.cpp)
+        impl/src/mesh-parameterisation/seam-generator/seam-generator.cpp
+        impl/src/mesh-segmentation/d-charts.cpp
+        impl/src/mesh-segmentation/utils.cpp)
 
 # Link the main exec ==================
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBS})

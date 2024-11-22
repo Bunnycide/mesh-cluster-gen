@@ -146,7 +146,7 @@ void region_distortion_to_texture_coordinates(pmp::SurfaceMesh &mesh)
     std::ranges::sort(values);
     unsigned int n = values.size() - 1;
 
-    unsigned int i = n / 20;
+    unsigned int i = n / 100;
     const pmp::Scalar kmin = values[i], kmax = values[n - 1];
 
     auto tex = mesh.vertex_property<pmp::TexCoord>("v:tex");

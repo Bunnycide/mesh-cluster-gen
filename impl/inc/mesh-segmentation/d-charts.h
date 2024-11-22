@@ -28,7 +28,7 @@ private:
     // Seeds to grow a chart from
     mutable std::vector<pmp::Face>                  chart_seeds;
     // Priority queue for each chart
-    mutable std::vector<Priority>                   priorities;
+    mutable std::vector<std::vector<Priority>>      priorities;
     // Axis of the union of cones
     mutable std::vector<pmp::Normal>                Nc_list;
     // Deviation angle from conic axis

@@ -77,4 +77,8 @@ void DCharts::grow_charts() const
     {
         Nc_list.push_back(face_normal(*m_mesh, seed));
     }
+
+    // Add the first adjacent triangles to the priority queue
+    
 }
+
